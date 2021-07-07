@@ -1,0 +1,84 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:android)
+
+platform :android do
+  before_all do
+    setup_circle_ci
+  end
+    desc "Run unit tests"
+    lane :unit_tests do |options|
+     gradle(
+        task: "test",
+        flavor: options[:build_flavor],
+        build_type: options[:build_type]
+      )
+    end
+
+    desc "Build"
+    lane :build do
+      gradle(task: "clean assembleRelease")
+    end
+    # use like this `fastlane distribute_dev group:android-qa`
+       desc "Deploy latest Debug build to Firebase App Distribution"
+       lane :distribute_dev do |options|
+         if options[:group]
+           build_android_app(
+             task: "assemble",
+             flavor: "dev",
+             build_type: "debug"
+           )
+
+           firebase_app_distribution(
+               app: ENV['FIREBASE_APP_ID_DEV'],
+               groups: options[:group],
+               release_notes: "Fastlane Droid Release Notes Updated 1.0.1",
+               firebase_cli_path: "/usr/local/bin/firebase",
+               firebase_cli_token: ENV['FIREBASE_CI_TOKEN']
+           )
+         else
+           UI.user_error!("Missing group name!")
+         end
+       end
+
+   # use like this `fastlane distribute_qa group:android-qa`
+    desc "Deploy latest Beta build to Firebase App Distribution"
+    lane :distribute_qa do |options|
+      if options[:group]
+        build_android_app(
+          task: "assemble",
+          flavor: "qa",
+          build_type: "release"
+        )
+
+        firebase_app_distribution(
+            app: ENV['FIREBASE_APP_ID_QA'],
+            groups: options[:group],
+            release_notes: "Fastlane Droid Release Notes Updated 1.0.1",
+            firebase_cli_path: "/usr/local/bin/firebase",
+            firebase_cli_token: ENV['FIREBASE_CI_TOKEN']
+        )
+      else
+        UI.user_error!("Missing group name!")
+      end
+    end
+
+  desc "Deploy a new version to the Google Play"
+  lane :deploy do
+    gradle(task: "clean assembleRelease")
+    upload_to_play_store
+  end
+end
