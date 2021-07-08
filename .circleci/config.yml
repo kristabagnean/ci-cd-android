@@ -77,22 +77,15 @@ references:
       name: Decode Android Keystore
       command: |
         echo $KEYSTORE_PATH | base64 -d | tee keystore.jks app/keystore.jks >/dev/null
-  # ---------------------------------------------------------------------------------------------------------------------
-  # DECODE FIREBASE GOOGLE_SERVICE_JSON_DEBUG FILE AND WRITE IT TO A FILE
-  # ---------------------------------------------------------------------------------------------------------------------
-  decode_gservices_key_dev: &decode_gservices_key_dev
-    run:
-      name: Decode Google Services JSON Dev key
-      command: |
-        echo $GOOGLE_SERVICES_JSON_DEV | base64 -d | tee app/src/dev/google-services.json>/dev/null
-  # ---------------------------------------------------------------------------------------------------------------------
-  # DECODE FIREBASE GOOGLE_SERVICE_JSON FILE AND WRITE IT TO A FILE
-  # ---------------------------------------------------------------------------------------------------------------------
-  decode_gservices_key_qa: &decode_gservices_key_qa
-    run:
-      name: Decode Google Services JSON qa key
-      command: |
-        echo $GOOGLE_SERVICES_JSON_QA | base64 -d | tee app/src/qa/google-services.json>/dev/null
+    # ---------------------------------------------------------------------------------------------------------------------
+    # DECODE FIREBASE GOOGLE_SERVICE_JSON FILE AND WRITE IT TO A FILE
+    # ---------------------------------------------------------------------------------------------------------------------
+    decode_gservices_key_dev: &decode_gservices_key
+      run:
+        name: Decode Google Services JSON Dev key
+        command: |
+          echo $GOOGLE_SERVICES_JSON | base64 -d | tee app/src/dev/google-services.json app/src/qa/google-services.json app/src/prod/google-services.json>/dev/null
+
   # ---------------------------------------------------------------------------------------------------------------------
   # INSTALL THE FIREBASE CLI FILE & ENABLE THE GLOBALLY AVAILABLE firebase COMMAND
   # ---------------------------------------------------------------------------------------------------------------------
@@ -114,8 +107,7 @@ jobs:
       - *ruby_dependencies
       - *save_gradle_cache
       - *save_gems_cache
-      - *decode_gservices_key_dev
-      - *decode_gservices_key_qa
+      - *decode_gservices_key
       - run:
           name: Run unit tests
           command: |
@@ -148,7 +140,7 @@ jobs:
       - *ruby_dependencies
       - *save_gradle_cache
       - *save_gems_cache
-      - *decode_gservices_key_dev
+      - *decode_gservices_key
       - *firebase_cli_install
       - run:
           name: Deploy latest Debug build to Firebase App Distribution
@@ -163,7 +155,7 @@ jobs:
       - *ruby_dependencies
       - *save_gradle_cache
       - *save_gems_cache
-      - *decode_gservices_key_qa
+      - *decode_gservices_key
       - *decode_android_key
       - *firebase_cli_install
       - run:

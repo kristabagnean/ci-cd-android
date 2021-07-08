@@ -23,3 +23,4 @@ keystore.jks
 /app/src/prod/google-services.json
 /app/src/dev/google-services.json
 /app/src/qa/google-services.json
+/google-play-json-key-file.json
