@@ -23,3 +23,6 @@ keystore.jks
 /app/src/prod/google-services.json
 /app/src/dev/google-services.json
 /app/src/qa/google-services.json
+
+# Google Play Android Developer project Service accounts json file
+/google-play-json-key-file.json
